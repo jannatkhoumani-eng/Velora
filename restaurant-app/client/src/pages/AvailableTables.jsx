@@ -32,7 +32,11 @@ export default function AvailableTables() {
       const [y, m, d] = targetDate.split('-');
       const formattedDate = `${d}/${m}/${y.slice(-2)}`;
 
-      const { data, error: fetchError } = await supabase.from('reservations').select('*').eq('user_id', user?.userId || 'anonymous');
+      let query = supabase.from('reservations').select('*');
+      if (!user?.isAdmin) {
+        query = query.eq('user_id', user?.userId || 'anonymous');
+      }
+      const { data, error: fetchError } = await query;
       if (fetchError) throw fetchError;
       
       const allRes = data || [];

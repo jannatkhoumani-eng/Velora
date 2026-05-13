@@ -26,7 +26,11 @@ export default function AnalyticsDashboard() {
 
   const fetchReservations = async () => {
     try {
-      const { data: resData, error } = await supabase.from('reservations').select('*').eq('user_id', user?.userId || 'anonymous');
+      let query = supabase.from('reservations').select('*');
+      if (!user?.isAdmin) {
+        query = query.eq('user_id', user?.userId || 'anonymous');
+      }
+      const { data: resData, error } = await query;
       if (error) throw error;
       setReservations(resData || []);
       processAnalytics(resData || []);

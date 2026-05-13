@@ -22,7 +22,10 @@ export default function SearchReservations() {
     setHasSearched(true);
     
     try {
-      let queryBuilder = supabase.from('reservations').select('*').eq('user_id', user?.userId || 'anonymous');
+      let queryBuilder = supabase.from('reservations').select('*');
+      if (!user?.isAdmin) {
+        queryBuilder = queryBuilder.eq('user_id', user?.userId || 'anonymous');
+      }
       
       if (searchMode === 'id') {
         queryBuilder = queryBuilder.eq('id', parseInt(query) || 0);
