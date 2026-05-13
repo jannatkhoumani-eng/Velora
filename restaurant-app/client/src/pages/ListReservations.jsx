@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import { 
   Search, 
   Calendar as CalendarIcon, 
@@ -24,6 +25,7 @@ export default function ListReservations() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState(null);
   const [viewTicket, setViewTicket] = useState(null);
+  const { user } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
@@ -42,7 +44,10 @@ export default function ListReservations() {
   const fetchReservations = async () => {
     setLoading(true);
     try {
-      const { data: resData, error } = await supabase.from('reservations').select('*');
+      const { data: resData, error } = await supabase
+        .from('reservations')
+        .select('*')
+        .eq('user_id', user?.userId || 'anonymous');
       if (error) throw error;
       setReservations(resData || []);
       calculateStats(resData || []);

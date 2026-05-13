@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import { Search, Loader, Users, Calendar, Hash, Filter, ChevronRight, AlertCircle, Trash2, Clock, Zap } from 'lucide-react';
 
 const BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
@@ -13,6 +14,7 @@ export default function SearchReservations() {
   const [results, setResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -20,7 +22,7 @@ export default function SearchReservations() {
     setHasSearched(true);
     
     try {
-      let queryBuilder = supabase.from('reservations').select('*');
+      let queryBuilder = supabase.from('reservations').select('*').eq('user_id', user?.userId || 'anonymous');
       
       if (searchMode === 'id') {
         queryBuilder = queryBuilder.eq('id', parseInt(query) || 0);

@@ -1,7 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, NavLink, useLocation, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, NavLink, useLocation, Link, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, PlusCircle, List as ListIcon, Search as SearchIcon, Map as MapIcon, Bell, User as UserIcon, Sun, Moon, PieChart, Home, ChevronRight, Zap } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, List as ListIcon, Search as SearchIcon, Map as MapIcon, Bell, User as UserIcon, Sun, Moon, PieChart, Home, ChevronRight, Zap, LogOut } from 'lucide-react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
+import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import AddReservation from './pages/AddReservation';
 import ListReservations from './pages/ListReservations';
@@ -14,7 +16,29 @@ import SplashScreen from './components/SplashScreen';
 import AmbiencePlayer from './components/AmbiencePlayer';
 import './index.css';
 
+// Protected Route wrapper — redirects to /auth if not logged in
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-[#0B1120] text-slate-500">
+        <div className="w-10 h-10 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin mb-4"></div>
+        <p className="font-bold tracking-widest text-[10px] uppercase">Loading Session</p>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+  
+  return children;
+}
+
 function Sidebar() {
+  const { user, signOut } = useAuth();
+  
   const links = [
     { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { to: "/add",       icon: PlusCircle,      label: "Add Reservation" },
@@ -64,12 +88,20 @@ function Sidebar() {
       <div className="p-8 border-t border-white/5">
         <div className="bg-slate-900/60 p-5 rounded-3xl border border-white/5 group cursor-pointer hover:bg-slate-900 transition-all shadow-xl">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-200 to-amber-600 flex items-center justify-center font-black text-slate-950 shadow-2xl group-hover:scale-105 transition-transform">J</div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-white truncate group-hover:text-amber-500 transition-colors">Jannat</p>
-              <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mt-0.5">Admin</p>
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-200 to-amber-600 flex items-center justify-center font-black text-slate-950 shadow-2xl group-hover:scale-105 transition-transform">
+              {user?.initial || 'U'}
             </div>
-            <ChevronRight className="w-4 h-4 text-slate-700 ml-auto group-hover:translate-x-1 transition-transform" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-white truncate group-hover:text-amber-500 transition-colors">{user?.name || 'User'}</p>
+              <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mt-0.5">Member</p>
+            </div>
+            <button 
+              onClick={(e) => { e.stopPropagation(); signOut(); }}
+              className="p-2 text-slate-600 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -79,6 +111,8 @@ function Sidebar() {
 
 function TopBar() {
   const location = useLocation();
+  const { user, signOut } = useAuth();
+  
   const getTitle = () => {
     switch (location.pathname) {
       case '/dashboard': return 'Dashboard';
@@ -100,7 +134,7 @@ function TopBar() {
             <h2 className="text-2xl font-black text-white tracking-tighter" style={{ fontFamily: "'Playfair Display', serif" }}>{getTitle()}</h2>
             <div className="flex items-center gap-2 mt-1">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-              <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Global Sync Active</p>
+              <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Personal Session Active</p>
             </div>
           </div>
         </div>
@@ -118,12 +152,22 @@ function TopBar() {
           <div className="w-[1px] h-10 bg-white/10" />
           
           <div className="flex items-center gap-4 bg-amber-500/5 border border-amber-500/10 pl-2 pr-5 py-2 rounded-2xl shadow-2xl hover:bg-amber-500/10 transition-all cursor-pointer group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-amber-500 text-slate-950 flex items-center justify-center font-black text-sm shadow-inner group-hover:scale-105 transition-transform">J</div>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-amber-500 text-slate-950 flex items-center justify-center font-black text-sm shadow-inner group-hover:scale-105 transition-transform">
+              {user?.initial || 'U'}
+            </div>
             <div className="hidden md:block">
-              <p className="text-xs font-black text-white uppercase tracking-tighter">Admin Session</p>
-              <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest mt-0.5">Jannat.vlr</p>
+              <p className="text-xs font-black text-white uppercase tracking-tighter">{user?.name || 'User'}</p>
+              <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest mt-0.5">{user?.userId || 'user'}.vlr</p>
             </div>
           </div>
+
+          <button 
+            onClick={signOut}
+            className="p-3.5 text-slate-500 hover:text-red-500 bg-white/5 border border-white/5 hover:border-red-500/20 hover:bg-red-500/10 rounded-2xl transition-all shadow-xl"
+            title="Sign Out"
+          >
+            <LogOut size={20} />
+          </button>
         </div>
       </div>
     </header>
@@ -144,7 +188,7 @@ function DashboardLayout({ children }) {
   );
 }
 
-function App() {
+function AppContent() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
@@ -160,19 +204,30 @@ function App() {
   };
 
   return (
-    <Router>
+    <>
       {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
       <MouseGlow />
       <AmbiencePlayer />
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
-        <Route path="/add" element={<DashboardLayout><AddReservation /></DashboardLayout>} />
-        <Route path="/list" element={<DashboardLayout><ListReservations /></DashboardLayout>} />
-        <Route path="/search" element={<DashboardLayout><SearchReservations /></DashboardLayout>} />
-        <Route path="/available" element={<DashboardLayout><AvailableTables /></DashboardLayout>} />
-        <Route path="/analytics" element={<DashboardLayout><AnalyticsDashboard /></DashboardLayout>} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/add" element={<ProtectedRoute><DashboardLayout><AddReservation /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/list" element={<ProtectedRoute><DashboardLayout><ListReservations /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/search" element={<ProtectedRoute><DashboardLayout><SearchReservations /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/available" element={<ProtectedRoute><DashboardLayout><AvailableTables /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/analytics" element={<ProtectedRoute><DashboardLayout><AnalyticsDashboard /></DashboardLayout></ProtectedRoute>} />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   );
 }

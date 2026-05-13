@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import { Loader, Users, CheckCircle2, XCircle, Search, Calendar, Clock, ArrowRight, Info, Crown, X, Map as MapIcon, Zap } from 'lucide-react';
 
 const BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
@@ -12,6 +13,7 @@ export default function AvailableTables() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedTable, setSelectedTable] = useState(null);
+  const { user } = useAuth();
 
   const [allReservations, setAllReservations] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -30,7 +32,7 @@ export default function AvailableTables() {
       const [y, m, d] = targetDate.split('-');
       const formattedDate = `${d}/${m}/${y.slice(-2)}`;
 
-      const { data, error: fetchError } = await supabase.from('reservations').select('*');
+      const { data, error: fetchError } = await supabase.from('reservations').select('*').eq('user_id', user?.userId || 'anonymous');
       if (fetchError) throw fetchError;
       
       const allRes = data || [];

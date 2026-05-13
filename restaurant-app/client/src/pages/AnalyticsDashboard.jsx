@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { TrendingUp, Users, Clock, Hash, Loader, CalendarDays, Percent, BarChart3, PieChart, Activity, Zap } from 'lucide-react';
 
@@ -9,6 +10,7 @@ const API_URL = `${BASE}/reservations`;
 export default function AnalyticsDashboard() {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   const [totalGuests, setTotalGuests] = useState(0);
   const [avgGuests, setAvgGuests] = useState(0);
@@ -24,7 +26,7 @@ export default function AnalyticsDashboard() {
 
   const fetchReservations = async () => {
     try {
-      const { data: resData, error } = await supabase.from('reservations').select('*');
+      const { data: resData, error } = await supabase.from('reservations').select('*').eq('user_id', user?.userId || 'anonymous');
       if (error) throw error;
       setReservations(resData || []);
       processAnalytics(resData || []);

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import { 
   CalendarCheck, 
   Clock, 
@@ -21,6 +22,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [insight, setInsight] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchData();
@@ -28,7 +30,10 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     try {
-      const { data: resData, error } = await supabase.from('reservations').select('*');
+      const { data: resData, error } = await supabase
+        .from('reservations')
+        .select('*')
+        .eq('user_id', user?.userId || 'anonymous');
       if (error) throw error;
       const data = resData || [];
       setStats({
@@ -50,7 +55,7 @@ export default function Dashboard() {
     const todayRes = data.filter(r => r.date === today);
     const vipCount = data.filter(r => r.experience === 'Celebration' || r.table === '10').length;
     
-    let text = `Welcome back, Jannat. We have ${todayRes.length} bookings scheduled for today. `;
+    let text = `Welcome back, ${user?.name || 'User'}. We have ${todayRes.length} bookings scheduled for today. `;
     if (todayRes.length > 5) text += "The floor will be busy tonight. ";
     if (vipCount > 0) text += `You have ${vipCount} premium experiences upcoming. `;
     text += "All systems are optimal.";

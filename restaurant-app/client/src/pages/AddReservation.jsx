@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import { 
   Users, 
   Calendar, 
@@ -30,6 +31,7 @@ const TABLES_URL = `${BASE}/available-tables`;
 
 export default function AddReservation() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     nom: '', prenom: '', telephone: '', persons: '2', date: '', heure: '', table: '', experience: 'Standard', specialRequests: '', groupType: 'Friends', isRamadan: false
   });
@@ -168,7 +170,8 @@ export default function AddReservation() {
         date: `${d}/${m}/${y.slice(-2)}`, 
         persons: parseInt(formData.persons), 
         table: parseInt(formData.table),
-        isRamadan: !!formData.isRamadan 
+        isRamadan: !!formData.isRamadan,
+        user_id: user?.userId || 'anonymous'
       };
       
       // Prevent double booking manually
