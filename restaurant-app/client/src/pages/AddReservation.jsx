@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { supabase } from '../supabaseClient';
 import { 
   Users, 
   Calendar, 
@@ -52,8 +52,32 @@ export default function AddReservation() {
     try {
       const [y, m, d] = formData.date.split('-');
       const formattedDate = `${d}/${m}/${y.slice(-2)}`;
-      const res = await axios.get(TABLES_URL, { params: { date: formattedDate, time: formData.heure } });
-      setAvailableTables(res.data);
+      const { data, error } = await supabase
+        .from('reservations')
+        .select('table')
+        .eq('date', formattedDate)
+        .eq('heure', formData.heure);
+        
+      if (error) throw error;
+      
+      const bookedTables = data.map(r => parseInt(r.table));
+      const getTableCapacity = (num) => {
+        if (num >= 1 && num <= 3) return 2;
+        if (num >= 4 && num <= 6) return 4;
+        if (num >= 7 && num <= 9) return 6;
+        if (num === 10) return 10;
+        return 0;
+      };
+      
+      const availability = [];
+      for (let i = 1; i <= 10; i++) {
+        availability.push({
+          table: i,
+          capacity: getTableCapacity(i),
+          available: !bookedTables.includes(i)
+        });
+      }
+      setAvailableTables(availability);
     } catch (err) {
       console.error(err);
     } finally {
@@ -139,8 +163,31 @@ export default function AddReservation() {
     setApiError('');
     try {
       const [y, m, d] = formData.date.split('-');
-      const payload = { ...formData, date: `${d}/${m}/${y.slice(-2)}` };
-      await axios.post(API_URL, payload);
+      const payload = { 
+        ...formData, 
+        date: `${d}/${m}/${y.slice(-2)}`, 
+        persons: parseInt(formData.persons), 
+        table: parseInt(formData.table),
+        isRamadan: !!formData.isRamadan 
+      };
+      
+      // Prevent double booking manually
+      const { data: existing } = await supabase
+        .from('reservations')
+        .select('id')
+        .eq('date', payload.date)
+        .eq('heure', payload.heure)
+        .eq('table', payload.table);
+        
+      if (existing && existing.length > 0) {
+        setApiError("La table est déjà réservée à cette date et cette heure.");
+        setSubmitting(false);
+        return;
+      }
+      
+      const { error } = await supabase.from('reservations').insert([payload]);
+      if (error) throw error;
+      
       setSuccess(true);
       setTimeout(() => navigate('/list'), 3000);
     } catch (err) {

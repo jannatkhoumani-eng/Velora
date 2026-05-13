@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import { supabase } from '../supabaseClient';
 import { Search, Loader, Users, Calendar, Hash, Filter, ChevronRight, AlertCircle, Trash2, Clock, Zap } from 'lucide-react';
 
 const BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
@@ -20,18 +20,24 @@ export default function SearchReservations() {
     setHasSearched(true);
     
     try {
-      let params = { type: searchMode };
-      if (searchMode === 'id' || searchMode === 'name') {
-        params.query = query;
+      let queryBuilder = supabase.from('reservations').select('*');
+      
+      if (searchMode === 'id') {
+        queryBuilder = queryBuilder.eq('id', parseInt(query) || 0);
+      } else if (searchMode === 'name') {
+        const q = query.toLowerCase();
+        queryBuilder = queryBuilder.or(`nom.ilike.%${q}%,prenom.ilike.%${q}%`);
       } else if (searchMode === 'datetime') {
         if (qDate) {
           const [y, m, d] = qDate.split('-');
-          params.qDate = `${d}/${m}/${y.slice(-2)}`;
+          queryBuilder = queryBuilder.eq('date', `${d}/${m}/${y.slice(-2)}`);
         }
-        if (qTime) params.qTime = qTime;
+        if (qTime) queryBuilder = queryBuilder.eq('heure', qTime);
       }
-      const res = await axios.get(API_URL, { params });
-      setResults(res.data);
+      
+      const { data, error } = await queryBuilder;
+      if (error) throw error;
+      setResults(data || []);
     } catch (err) {
       console.error(err);
       setResults([]);

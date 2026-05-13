@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import { supabase } from '../supabaseClient';
 import { 
   CalendarCheck, 
   Clock, 
@@ -15,9 +15,6 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
-const API_URL = `${BASE}/reservations`;
-
 export default function Dashboard() {
   const [stats, setStats] = useState({ total: 0, today: 0 });
   const [recent, setRecent] = useState([]);
@@ -31,8 +28,9 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     try {
-      const res = await axios.get(API_URL);
-      const data = res.data;
+      const { data: resData, error } = await supabase.from('reservations').select('*');
+      if (error) throw error;
+      const data = resData || [];
       setStats({
         total: data.length,
         today: data.filter(r => r.date === new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })).length

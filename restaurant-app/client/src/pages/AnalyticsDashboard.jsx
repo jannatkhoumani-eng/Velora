@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { supabase } from '../supabaseClient';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { TrendingUp, Users, Clock, Hash, Loader, CalendarDays, Percent, BarChart3, PieChart, Activity, Zap } from 'lucide-react';
 
@@ -24,10 +24,10 @@ export default function AnalyticsDashboard() {
 
   const fetchReservations = async () => {
     try {
-      const res = await axios.get(API_URL);
-      const data = res.data;
-      setReservations(data);
-      processAnalytics(data);
+      const { data: resData, error } = await supabase.from('reservations').select('*');
+      if (error) throw error;
+      setReservations(resData || []);
+      processAnalytics(resData || []);
     } catch (err) {
       console.error("Failed to fetch data", err);
     } finally {

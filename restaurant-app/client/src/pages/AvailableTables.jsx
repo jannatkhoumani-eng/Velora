@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { supabase } from '../supabaseClient';
 import { Loader, Users, CheckCircle2, XCircle, Search, Calendar, Clock, ArrowRight, Info, Crown, X, Map as MapIcon, Zap } from 'lucide-react';
 
 const BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
@@ -30,13 +30,34 @@ export default function AvailableTables() {
       const [y, m, d] = targetDate.split('-');
       const formattedDate = `${d}/${m}/${y.slice(-2)}`;
 
-      const [resAvailability, resAll] = await Promise.all([
-        axios.get(API_URL, { params: { date: formattedDate, time: targetTime } }),
-        axios.get(`${BASE}/reservations`)
-      ]);
+      const { data, error: fetchError } = await supabase.from('reservations').select('*');
+      if (fetchError) throw fetchError;
+      
+      const allRes = data || [];
+      
+      const bookedTables = allRes
+        .filter(r => r.date === formattedDate && r.heure === targetTime)
+        .map(r => parseInt(r.table));
 
-      setTables(resAvailability.data);
-      setAllReservations(resAll.data);
+      const getTableCapacity = (num) => {
+        if (num >= 1 && num <= 3) return 2;
+        if (num >= 4 && num <= 6) return 4;
+        if (num >= 7 && num <= 9) return 6;
+        if (num === 10) return 10;
+        return 0;
+      };
+
+      const availability = [];
+      for (let i = 1; i <= 10; i++) {
+        availability.push({
+          table: i,
+          capacity: getTableCapacity(i),
+          available: !bookedTables.includes(i)
+        });
+      }
+
+      setTables(availability);
+      setAllReservations(allRes);
     } catch (err) {
       setError(err.response?.data?.error || "Load synchronization failed");
     } finally {

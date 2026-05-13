@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { supabase } from '../supabaseClient';
 import { 
   Search, 
   Calendar as CalendarIcon, 
@@ -15,10 +15,8 @@ import {
   Database,
   ArrowRight
 } from 'lucide-react';
-import ReservationTicket from '../components/ReservationTicket';
 
-const BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
-const API_URL = `${BASE}/reservations`;
+import ReservationTicket from '../components/ReservationTicket';
 
 export default function ListReservations() {
   const [reservations, setReservations] = useState([]);
@@ -44,9 +42,10 @@ export default function ListReservations() {
   const fetchReservations = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(API_URL);
-      setReservations(res.data);
-      calculateStats(res.data);
+      const { data: resData, error } = await supabase.from('reservations').select('*');
+      if (error) throw error;
+      setReservations(resData || []);
+      calculateStats(resData || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -103,7 +102,8 @@ export default function ListReservations() {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await axios.delete(`${API_URL}/${deleteId}`);
+      const { error } = await supabase.from('reservations').delete().eq('id', deleteId);
+      if (error) throw error;
       const updated = reservations.filter(r => r.id !== deleteId);
       setReservations(updated);
       calculateStats(updated);
