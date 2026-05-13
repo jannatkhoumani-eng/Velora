@@ -11,7 +11,10 @@ export function AuthProvider({ children }) {
     const savedUser = localStorage.getItem('velora_user');
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        const parsedUser = JSON.parse(savedUser);
+        const isAdmin = parsedUser.userId === 'jannat' || parsedUser.userId === 'admin';
+        parsedUser.isAdmin = isAdmin;
+        setUser(parsedUser);
       } catch {
         localStorage.removeItem('velora_user');
       }

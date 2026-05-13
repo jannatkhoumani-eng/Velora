@@ -98,7 +98,7 @@ function Sidebar() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold text-white truncate group-hover:text-amber-500 transition-colors">{user?.name || 'User'}</p>
-              <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mt-0.5">Member</p>
+              <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mt-0.5">{user?.isAdmin ? 'Master Admin' : 'Member'}</p>
             </div>
             <button 
               onClick={(e) => { e.stopPropagation(); signOut(); }}
