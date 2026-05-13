@@ -25,11 +25,13 @@ export function AuthProvider({ children }) {
     
     // Create a simple user ID from the name (lowercase, no spaces)
     const userId = trimmed.toLowerCase().replace(/\s+/g, '_');
+    const isAdmin = userId === 'jannat' || userId === 'admin';
     const userData = {
       name: trimmed,
       userId: userId,
       initial: trimmed.charAt(0).toUpperCase(),
-      joinedAt: new Date().toISOString()
+      joinedAt: new Date().toISOString(),
+      isAdmin: isAdmin
     };
     
     setUser(userData);

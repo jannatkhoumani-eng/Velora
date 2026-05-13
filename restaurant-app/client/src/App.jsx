@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, NavLink, useLocation, Link, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, PlusCircle, List as ListIcon, Search as SearchIcon, Map as MapIcon, Bell, User as UserIcon, Sun, Moon, PieChart, Home, ChevronRight, Zap, LogOut } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, List as ListIcon, Search as SearchIcon, Map as MapIcon, Bell, User as UserIcon, Sun, Moon, PieChart, Home, ChevronRight, Zap, LogOut, ShieldAlert } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
@@ -10,6 +10,7 @@ import ListReservations from './pages/ListReservations';
 import SearchReservations from './pages/SearchReservations';
 import AvailableTables from './pages/AvailableTables';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import Logo from './components/Logo';
 import MouseGlow from './components/MouseGlow';
 import SplashScreen from './components/SplashScreen';
@@ -47,6 +48,10 @@ function Sidebar() {
     { to: "/available", icon: MapIcon,         label: "Available Tables" },
     { to: "/analytics", icon: PieChart,        label: "Analytics" },
   ];
+
+  if (user?.isAdmin) {
+    links.push({ to: "/admin", icon: ShieldAlert, label: "Admin Control" });
+  }
 
   return (
     <aside className="w-80 hidden lg:flex flex-col h-screen sticky top-0 bg-[#020617] border-r border-white/5 shadow-[20px_0_50px_rgba(0,0,0,0.2)] z-50">
@@ -217,6 +222,7 @@ function AppContent() {
         <Route path="/search" element={<ProtectedRoute><DashboardLayout><SearchReservations /></DashboardLayout></ProtectedRoute>} />
         <Route path="/available" element={<ProtectedRoute><DashboardLayout><AvailableTables /></DashboardLayout></ProtectedRoute>} />
         <Route path="/analytics" element={<ProtectedRoute><DashboardLayout><AnalyticsDashboard /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><DashboardLayout><AdminDashboard /></DashboardLayout></ProtectedRoute>} />
       </Routes>
     </>
   );
