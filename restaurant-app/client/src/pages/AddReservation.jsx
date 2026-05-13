@@ -191,8 +191,8 @@ export default function AddReservation() {
       setSuccess(true);
       setTimeout(() => navigate('/list'), 3000);
     } catch (err) {
-      const msg = err.response?.data?.error || "Synchronisation failed. Check connection.";
-      setApiError(msg);
+      console.error("SUPABASE ERROR:", err);
+      setApiError(err.message || err.details || "Synchronisation failed. Check connection.");
     } finally {
       setSubmitting(false);
     }
