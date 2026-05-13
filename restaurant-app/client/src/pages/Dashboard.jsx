@@ -24,9 +24,14 @@ export default function Dashboard() {
   const [isTyping, setIsTyping] = useState(false);
   const { user } = useAuth();
 
+  const typingIntervalRef = useRef(null);
+
   useEffect(() => {
     fetchData();
-  }, []);
+    return () => {
+      if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+    };
+  }, [user]);
 
   const fetchData = async () => {
     try {
@@ -50,7 +55,9 @@ export default function Dashboard() {
   };
 
   const generateInsight = (data) => {
+    if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
     setIsTyping(true);
+    
     const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
     const todayRes = data.filter(r => r.date === today);
     const vipCount = data.filter(r => r.experience === 'Celebration' || r.table === '10').length;
@@ -61,11 +68,11 @@ export default function Dashboard() {
     text += "All systems are optimal.";
     
     let i = 0;
-    const interval = setInterval(() => {
+    typingIntervalRef.current = setInterval(() => {
       setInsight(text.substring(0, i));
       i++;
       if (i > text.length) {
-        clearInterval(interval);
+        clearInterval(typingIntervalRef.current);
         setIsTyping(false);
       }
     }, 30);
