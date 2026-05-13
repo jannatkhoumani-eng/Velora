@@ -24,59 +24,72 @@ export default function Dashboard() {
   const [isTyping, setIsTyping] = useState(false);
   const { user } = useAuth();
 
-  const typingIntervalRef = useRef(null);
+  const [targetInsight, setTargetInsight] = useState('');
 
   useEffect(() => {
+    let isMounted = true;
+
+    const fetchData = async () => {
+      try {
+        const { data: resData, error } = await supabase
+          .from('reservations')
+          .select('*')
+          .eq('user_id', user?.userId || 'anonymous');
+        
+        if (error) throw error;
+        if (!isMounted) return;
+
+        const data = resData || [];
+        const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        const todayRes = data.filter(r => r.date === today);
+        const vipCount = data.filter(r => r.experience === 'Celebration' || r.table === '10').length;
+        
+        setStats({
+          total: data.length,
+          today: todayRes.length
+        });
+        setRecent(data.slice(-5).reverse());
+        
+        // Generate the text for the insight
+        let text = `Welcome back, ${user?.name || 'User'}. We have ${todayRes.length} bookings scheduled for today. `;
+        if (todayRes.length > 5) text += "The floor will be busy tonight. ";
+        if (vipCount > 0) text += `You have ${vipCount} premium experiences upcoming. `;
+        text += "All systems are optimal.";
+        
+        setTargetInsight(text);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
     fetchData();
+
     return () => {
-      if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+      isMounted = false;
     };
   }, [user]);
 
-  const fetchData = async () => {
-    try {
-      const { data: resData, error } = await supabase
-        .from('reservations')
-        .select('*')
-        .eq('user_id', user?.userId || 'anonymous');
-      if (error) throw error;
-      const data = resData || [];
-      setStats({
-        total: data.length,
-        today: data.filter(r => r.date === new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })).length
-      });
-      setRecent(data.slice(-5).reverse());
-      generateInsight(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const generateInsight = (data) => {
-    if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+  // Typing animation effect
+  useEffect(() => {
+    if (!targetInsight) return;
+    
+    setInsight('');
     setIsTyping(true);
-    
-    const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
-    const todayRes = data.filter(r => r.date === today);
-    const vipCount = data.filter(r => r.experience === 'Celebration' || r.table === '10').length;
-    
-    let text = `Welcome back, ${user?.name || 'User'}. We have ${todayRes.length} bookings scheduled for today. `;
-    if (todayRes.length > 5) text += "The floor will be busy tonight. ";
-    if (vipCount > 0) text += `You have ${vipCount} premium experiences upcoming. `;
-    text += "All systems are optimal.";
-    
     let i = 0;
-    typingIntervalRef.current = setInterval(() => {
-      setInsight(text.substring(0, i));
+    
+    const interval = setInterval(() => {
+      setInsight(targetInsight.substring(0, i));
       i++;
-      if (i > text.length) {
-        clearInterval(typingIntervalRef.current);
+      if (i > targetInsight.length) {
+        clearInterval(interval);
         setIsTyping(false);
       }
     }, 30);
-  };
+    
+    return () => clearInterval(interval);
+  }, [targetInsight]);
 
   const getExpStyle = (res) => {
     const exp = res.experience || 'Standard';
