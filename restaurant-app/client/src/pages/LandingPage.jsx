@@ -190,7 +190,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-8 text-slate-600 font-black text-[10px] uppercase tracking-widest">
           <div className="flex items-center gap-4">
             <Logo size="sm" variant="light" />
-            <span>&copy; 2026 VELORA SYSTEMS. ALL RIGHTS RESERVED.</span>
+            <span>&copy; {new Date().getFullYear()} VELORA SYSTEMS. ALL RIGHTS RESERVED. <br className="md:hidden" /><span className="text-amber-500">MADE BY JANNAT</span>.</span>
           </div>
           <div className="flex items-center gap-12">
             <a href="#" className="hover:text-white transition-colors">Security</a>

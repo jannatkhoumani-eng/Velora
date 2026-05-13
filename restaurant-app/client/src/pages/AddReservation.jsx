@@ -342,14 +342,7 @@ export default function AddReservation() {
               </div>
               <div className="group">
                 <label className="label-text">Select Time</label>
-                <select name="heure" className={`input-field ${errors.heure && touched.heure ? 'border-red-500/50' : ''}`} value={formData.heure} onChange={handleChange} onBlur={handleBlur}>
-                  <option value="">Time Slot</option>
-                  {formData.isRamadan ? (
-                    ['18:30', '19:00', '19:30', '20:00'].map(h => <option key={h} value={h}>{h} (Ftour)</option>)
-                  ) : (
-                    ['12:00', '13:00', '14:00', '19:00', '20:00', '21:00', '22:00'].map(h => <option key={h} value={h}>{h}</option>)
-                  )}
-                </select>
+                <input type="time" name="heure" className={`input-field ${errors.heure && touched.heure ? 'border-red-500/50' : ''}`} value={formData.heure} onChange={handleChange} onBlur={handleBlur} />
                 {errors.heure && touched.heure && <p className="mt-2 text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1">{errors.heure}</p>}
               </div>
               <div className="group">
