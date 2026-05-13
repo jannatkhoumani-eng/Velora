@@ -24,8 +24,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 import Logo from '../components/Logo';
 
-const API_URL = `http://${window.location.hostname}:5000/reservations`;
-const TABLES_URL = `http://${window.location.hostname}:5000/available-tables`;
+const BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+const API_URL = `${BASE}/reservations`;
+const TABLES_URL = `${BASE}/available-tables`;
 
 export default function AddReservation() {
   const navigate = useNavigate();

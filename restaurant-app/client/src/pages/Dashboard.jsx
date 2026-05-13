@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const API_URL = `http://${window.location.hostname}:5000/reservations`;
+const BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+const API_URL = `${BASE}/reservations`;
 
 export default function Dashboard() {
   const [stats, setStats] = useState({ total: 0, today: 0 });

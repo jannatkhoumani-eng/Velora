@@ -2,7 +2,8 @@ import { useState } from 'react';
 import axios from 'axios';
 import { Search, Loader, Users, Calendar, Hash, Filter, ChevronRight, AlertCircle, Trash2, Clock, Zap } from 'lucide-react';
 
-const API_URL = `http://${window.location.hostname}:5000/reservations`;
+const BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+const API_URL = `${BASE}/reservations`;
 
 export default function SearchReservations() {
   const [searchMode, setSearchMode] = useState('name');

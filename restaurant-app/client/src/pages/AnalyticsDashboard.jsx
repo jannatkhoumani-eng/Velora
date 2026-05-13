@@ -3,7 +3,8 @@ import axios from 'axios';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { TrendingUp, Users, Clock, Hash, Loader, CalendarDays, Percent, BarChart3, PieChart, Activity, Zap } from 'lucide-react';
 
-const API_URL = `http://${window.location.hostname}:5000/reservations`;
+const BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+const API_URL = `${BASE}/reservations`;
 
 export default function AnalyticsDashboard() {
   const [reservations, setReservations] = useState([]);

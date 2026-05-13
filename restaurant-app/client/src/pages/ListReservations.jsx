@@ -17,7 +17,8 @@ import {
 } from 'lucide-react';
 import ReservationTicket from '../components/ReservationTicket';
 
-const API_URL = `http://${window.location.hostname}:5000/reservations`;
+const BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+const API_URL = `${BASE}/reservations`;
 
 export default function ListReservations() {
   const [reservations, setReservations] = useState([]);

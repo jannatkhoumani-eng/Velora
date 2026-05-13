@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Loader, Users, CheckCircle2, XCircle, Search, Calendar, Clock, ArrowRight, Info, Crown, X, Map as MapIcon, Zap } from 'lucide-react';
 
-const API_URL = `http://${window.location.hostname}:5000/available-tables`;
+const BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000`;
+const API_URL = `${BASE}/available-tables`;
 
 export default function AvailableTables() {
   const [date, setDate] = useState('');
@@ -31,7 +32,7 @@ export default function AvailableTables() {
 
       const [resAvailability, resAll] = await Promise.all([
         axios.get(API_URL, { params: { date: formattedDate, time: targetTime } }),
-        axios.get(`http://${window.location.hostname}:5000/reservations`)
+        axios.get(`${BASE}/reservations`)
       ]);
 
       setTables(resAvailability.data);
